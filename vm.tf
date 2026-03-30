@@ -1,5 +1,5 @@
 resource "google_compute_instance" "test" {
-  name         = "test"
+  name         = "test-vm"
   machine_type = "e2-medium"
   zone         = "us-central1-a"
 
@@ -12,7 +12,7 @@ resource "google_compute_instance" "test" {
   }
 
   network_interface {
-    network = "default"
+    subnetwork = google_compute_subnetwork.app_subnet.id
     access_config {
       # Gives the VM a public IP
     }
