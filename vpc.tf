@@ -1,3 +1,4 @@
+
 resource "google_compute_network" "custom_vpc" {
   name                    = "test-vpc"
   auto_create_subnetworks = false # Enables Custom Mode
