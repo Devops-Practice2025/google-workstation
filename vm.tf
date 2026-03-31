@@ -1,6 +1,6 @@
 resource "google_compute_instance" "test" {
   name         = "test-vm"
-  machine_type = "e2-medium"
+  machine_type = "e2-standard-2"
   zone         = "us-east1-b"
 
   boot_disk {
@@ -17,4 +17,17 @@ resource "google_compute_instance" "test" {
       # Gives the VM a public IP
     }
   }
+   service_account {
+    # If email is omitted, the default Compute Engine service account is used
+    email  = null 
+    # Required to allow the SA to call Google APIs (like Secret Manager)
+    scopes = ["cloud-platform"] 
+  }
+
+  metadata_startup_script = <<-EOF
+    #!/bin/bash
+    dnf update -y
+    dnf install -y ansible-core
+  EOF
+
 }

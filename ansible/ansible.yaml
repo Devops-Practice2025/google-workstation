@@ -1,16 +1,24 @@
 ---
-- name: Configure User and SSH Password Login
-  hosts: all
+- name: Configure User using gcloud CLI (No Collection)
+  hosts: localhost  # If running ON the VM itself
   become: true
-
+  
   tasks:
+    - name: Fetch password from Secret Manager
+      # 'gcloud' uses the VM's attached identity automatically
+      ansible.builtin.shell: >
+        gcloud secrets versions access latest --secret="my-pass"
+      register: secret_output
+      no_log: true # Prevents the password from appearing in Ansible logs
+
     - name: Ensure the current user is in the wheel group
       ansible.builtin.user:
         name: "{{ ansible_user }}"
         groups: wheel
         append: yes
-        # The variable 'my_pass' will be provided at runtime
-        password: "{{ my_pass | password_hash('sha512') }}"
+        # Use the captured output from the gcloud command
+        password: "{{ secret_output.stdout | password_hash('sha512') }}"
+      no_log: true
 
     - name: Enable Password Authentication
       ansible.builtin.lineinfile:
