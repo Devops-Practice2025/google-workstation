@@ -5,9 +5,9 @@ resource "google_compute_network" "custom_vpc" {
 }
 
 resource "google_compute_subnetwork" "app_subnet" {
-  name          = "app-subnet-us-east1"
+  name          = "app-subnet-us-east1-b"
   ip_cidr_range = "10.0.1.0/24"
-  region        = "us-east1"
+  region        = "us-east1-b"
   network       = google_compute_network.custom_vpc.id
 }
 resource "google_compute_firewall" "allow_rule" {

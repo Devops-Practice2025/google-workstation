@@ -1,7 +1,7 @@
 resource "google_compute_instance" "test" {
   name         = "test-vm"
   machine_type = "e2-medium"
-  zone         = "us-east1-a"
+  zone         = "us-east1-b"
 
   boot_disk {
     initialize_params {
