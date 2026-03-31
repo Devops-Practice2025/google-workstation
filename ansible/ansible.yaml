@@ -9,8 +9,9 @@
       ansible.builtin.shell: >
         gcloud secrets versions access latest --secret="my-pass"
       register: secret_output
-      no_log: true # Prevents the password from appearing in Ansible logs
       become: false
+      no_log: true # Prevents the password from appearing in Ansible logs
+      
 
     - name: Ensure the current user is in the wheel group
       ansible.builtin.user:
@@ -20,6 +21,7 @@
         # Use the captured output from the gcloud command
         password: "{{ secret_output.stdout | password_hash('sha512') }}"
       no_log: true
+      become: true
       
 
     - name: Enable Password Authentication
@@ -28,9 +30,11 @@
         regexp: '^#?PasswordAuthentication'
         line: 'PasswordAuthentication yes'
       notify: Restart SSH
+      become: true
 
   handlers:
     - name: Restart SSH
       ansible.builtin.service:
         name: sshd
         state: restarted
+      become: true
