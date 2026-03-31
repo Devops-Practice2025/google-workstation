@@ -1,0 +1,26 @@
+---
+- name: Configure User and SSH Password Login
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure the current user is in the wheel group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: wheel
+        append: yes
+        # The variable 'my_pass' will be provided at runtime
+        password: "{{ my_pass | password_hash('sha512') }}"
+
+    - name: Enable Password Authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+      notify: Restart SSH
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
