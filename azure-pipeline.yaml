@@ -1,0 +1,28 @@
+trigger:
+  none: true
+
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+
+- job: GCP-job
+  displayName: 'GCP-job'
+  steps:
+  - checkout: self
+  
+  - task: GoogleCloudSdkTools@1
+    displayName: 'GCloud install and Authentication'
+    inputs:
+      version: 'latest'
+      googleCloudConnection: 'GCP-WIF-Connection'
+
+  - script: |
+      gcloud projects list
+      gcloud compute instances list
+    displayName: 'Gcloud auth verification'
+
+
+
+        
