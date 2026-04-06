@@ -5,16 +5,26 @@ pool:
   vmImage: 'ubuntu-latest'
 
 jobs:
-- job: GCP_job
-  displayName: 'GCP_job'
+- job: GCPJob
+  displayName: 'Authenticate to GCP'
   steps:
   - checkout: self
-  
+
   - task: Bash@3
-    displayName: "Authenticate to GCP"
+    displayName: "Decode GCP Key and Authenticate"
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "$GCLOUD_KEY_BASE64" | base64 --decode > key.json
+
+        echo "✅ JSON key decoded"
+
+        gcloud auth activate-service-account --key-file=key.json
+        gcloud config set project extreme-minutia-492415-v6
+
+  - task: Bash@3
+    displayName: "GCP Test Command"
     inputs:
       targetType: 'inline'
       script: |
-        printf "%s" "$(GCLOUD_KEY_JSON)" > key.json
-        cat key.json        # Optional: debugging if allowed
-        gcloud auth activate-service-account --key
+        gcloud projects describe extreme-minutia-492415-v6
