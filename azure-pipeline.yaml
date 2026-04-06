@@ -23,6 +23,7 @@ jobs:
         fi
 
         echo "✅ JSON key written"
+        cat key.json
 
         gcloud auth activate-service-account --key-file=key.json
         gcloud config set project extreme-minutia-492415-v6
