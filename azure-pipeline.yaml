@@ -6,8 +6,8 @@ pool:
 
 jobs:
 
-- job: GCP-job
-  displayName: 'GCP-job'
+- job: GCP_job
+  displayName: 'GCP_job'
   steps:
   - checkout: self
   
