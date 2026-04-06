@@ -1,6 +1,9 @@
 trigger: none
 pr: none
 
+variables:
+- group: GCP
+
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -24,7 +27,16 @@ jobs:
 
         echo "✅ JSON key written"
         cat key.json
+        if [$? == 1]; then
+          echo "json has no file"
+          exit 1
+        fi
 
+  - task: Bash@3
+    displayName: "Authenticate to GCP"
+    inputs:
+      targetType: 'inline'
+      script: |       
         gcloud auth activate-service-account --key-file=key.json
         gcloud config set project extreme-minutia-492415-v6
 
