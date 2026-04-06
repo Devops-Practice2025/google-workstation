@@ -12,17 +12,18 @@ jobs:
   steps:
   - checkout: self
   
-  - task: GoogleCloudSdkTools@1
-    displayName: 'GCloud install and Authentication'
+  - task: Bash@3
+    displayName: "Authenticate to GCP"
     inputs:
-      version: 'latest'
-      googleCloudConnection: 'GCP-WIF-Connection'
+      targetType: 'inline'
+      script: |
+        echo "$GCLOUD_KEY_JSON" > key.json
+        gcloud auth activate-service-account --key-file=key.json
+        gcloud config set project extreme-minutia-492415-v6
 
-  - script: |
-      gcloud projects list
-      gcloud compute instances list
-    displayName: 'Gcloud auth verification'
-
-
-
-        
+  - task: Bash@3
+    displayName: "GCP Test Command"
+    inputs:
+      targetType: 'inline'
+      script: |
+        gcloud projects describe extreme-minutia-492415-v6
