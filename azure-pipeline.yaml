@@ -1,5 +1,4 @@
-trigger:
-  none: true
+trigger: none
 
 
 pool:
