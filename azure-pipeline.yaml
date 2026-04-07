@@ -4,6 +4,15 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  image_project: optimum-parity-492514-s8
+  move_project: magnetic-abode-492609-i1
+  zone: europe-west1-b
+  instance_name: instance-20260403-151047
+  snapshot_name: temp-snapshot-for-move
+  image_name: image-for-move
+
+
 steps:
 - task: DownloadSecureFile@1
   name: gcpkey
@@ -13,6 +22,19 @@ steps:
 - script: |
     gcloud auth activate-service-account \
       --key-file=$(gcpkey.secureFilePath)
-    gcloud config set project optimum-parity-492514-s8
+    gcloud config set project ${image_project}
     gcloud auth list
+    gcloud compute disks snapshot ${instance_name}     --project=${image_project}     --zone=${zone}   --snapshot-names=${snapshot_name}
+
+    gcloud compute images create ${image_name}     --project=${image_project}     --source-snapshot=${snapshot_name}
+
+    gcloud compute images list
+  
+    PROJECT_NUMBER = $(gcloud projects describe ${move_project}  --format="value(projectNumber)")
+
+    gcloud projects add-iam-policy-binding ${image_project}  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"     --role="roles/compute.imageUser"
+    
+    gcloud compute instances create ${instance_name}     --project=${move_project}   --zone=${zone} --machine-type=e2-standard-4      --image=image-for-move     --image-project=${image_project}
+    
+  
   displayName: Authenticate to Google Cloud
