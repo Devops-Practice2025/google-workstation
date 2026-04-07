@@ -1,48 +1,18 @@
-trigger: none
-pr: none
-
-variables:
-- group: GCP
+trigger:
+- none
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: ubuntu-latest
 
-jobs:
-- job: GCPJob
-  displayName: 'Authenticate to GCP using raw JSON'
-  steps:
-  - checkout: self
+steps:
+- task: DownloadSecureFile@1
+  name: gcpkey
+  inputs:
+    secureFile: key.json
 
-  - task: Bash@3
-    displayName: "Write JSON key to file"
-    inputs:
-      targetType: 'inline'
-      script: |
-        echo "$GCLOUD_KEY_JSON" > key.json
-
-        if [ ! -s key.json ]; then
-          echo "❌ key.json is empty — your secret did not pass correctly."
-          exit 1
-        fi
-
-        echo "✅ JSON key written"
-        cat key.json
-        if [$? == 1]; then
-          echo "json has no file"
-          exit 1
-        fi
-
-  - task: Bash@3
-    displayName: "Authenticate to GCP"
-    inputs:
-      targetType: 'inline'
-      script: |       
-        gcloud auth activate-service-account --key-file=key.json
-        gcloud config set project extreme-minutia-492415-v6
-
-  - task: Bash@3
-    displayName: "GCP Test Command"
-    inputs:
-      targetType: 'inline'
-      script: |
-        gcloud iam service-accounts list --project=extreme-minutia-492415-v6
+- script: |
+    gcloud auth activate-service-account \
+      --key-file=$(gcpkey.secureFilePath)
+    gcloud config set project optimum-parity-492514-s8
+    gcloud auth list
+  displayName: Authenticate to Google Cloud
