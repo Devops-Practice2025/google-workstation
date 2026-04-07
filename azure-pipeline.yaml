@@ -12,7 +12,6 @@ variables:
   snapshot_name: temp-snapshot-for-move
   image_name: image-for-move
 
-
 steps:
 - task: DownloadSecureFile@1
   name: gcpkey
@@ -20,21 +19,43 @@ steps:
     secureFile: key.json
 
 - script: |
+    set -e
+
+    echo "Authenticating to Google Cloud"
     gcloud auth activate-service-account \
       --key-file=$(gcpkey.secureFilePath)
-    gcloud config set project ${image_project}
+
+    gcloud config set project $(image_project)
     gcloud auth list
-    gcloud compute disks snapshot ${instance_name}     --project=${image_project}     --zone=${zone}   --snapshot-names=${snapshot_name}
 
-    gcloud compute images create ${image_name}     --project=${image_project}     --source-snapshot=${snapshot_name}
+    echo "Creating snapshot from disk"
+    gcloud compute disks snapshot $(instance_name) \
+      --project=$(image_project) \
+      --zone=$(zone) \
+      --snapshot-names=$(snapshot_name)
 
-    gcloud compute images list
-  
-    PROJECT_NUMBER = $(gcloud projects describe ${move_project}  --format="value(projectNumber)")
+    echo "Creating image from snapshot"
+    gcloud compute images create $(image_name) \
+      --project=$(image_project) \
+      --source-snapshot=$(snapshot_name)
 
-    gcloud projects add-iam-policy-binding ${image_project}  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"     --role="roles/compute.imageUser"
-    
-    gcloud compute instances create ${instance_name}     --project=${move_project}   --zone=${zone} --machine-type=e2-standard-4      --image=image-for-move     --image-project=${image_project}
-    
-  
-  displayName: Authenticate to Google Cloud
+    gcloud compute images list --project=$(image_project)
+
+    echo "Getting project number for move project"
+    PROJECT_NUMBER=$(gcloud projects describe $(move_project) --format="value(projectNumber)")
+    echo "Move project number: $PROJECT_NUMBER"
+
+    echo "Granting imageUser role"
+    gcloud projects add-iam-policy-binding $(image_project) \
+      --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+      --role="roles/compute.imageUser"
+
+    echo "Creating VM in move project"
+    gcloud compute instances create $(instance_name) \
+      --project=$(move_project) \
+      --zone=$(zone) \
+      --machine-type=e2-standard-4 \
+      --image=$(image_name) \
+      --image-project=$(image_project)
+
+  displayName: "Snapshot → Image → Cross-project VM creation"
